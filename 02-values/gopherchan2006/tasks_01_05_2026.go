@@ -11,4 +11,7 @@ func main() {
 	fmt.Println(true && false)
 	fmt.Println(true || false)
 	fmt.Println(!true)
+
+	fmt.Println("hello" + string(1232))
+	fmt.Println("hello" + string(1))
 }
