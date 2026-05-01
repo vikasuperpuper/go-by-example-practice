@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Гайд для Вики — часть 2</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:ital,wght@0,700;1,400&display=swap');
+
+    :root{
+      --bg:#ffd9ec;
+      --bg2:#ffc2e1;
+      --card:#ffffff;
+      --card2:#ffe8f5;
+      --text:#341526;
+      --muted:#8d5376;
+      --line:#ef9fca;
+      --rose:#ff4f97;
+      --pink:#ff86bd;
+      --lilac:#bf82ff;
+      --ok:#5cb87a;
+    }
+
+    *{box-sizing:border-box;margin:0;padding:0}
+
+    body{
+      background:radial-gradient(circle at 18% 15%,#ffdff3 0%,transparent 28%),radial-gradient(circle at 85% 88%,#ffd0ff 0%,transparent 30%),linear-gradient(180deg,var(--bg),var(--bg2));
+      color:var(--text);
+      font:15px/1.65 'Inter',Segoe UI,sans-serif;
+      overflow-x:hidden;
+      position:relative;
+    }
+    body::before,
+    body::after{
+      content:'';
+      position:fixed;
+      width:42vmax;height:42vmax;
+      border-radius:50%;
+      pointer-events:none;
+      filter:blur(20px);
+      z-index:0;
+      opacity:.58;
+    }
+    body::before{
+      top:-10vmax;left:-8vmax;
+      background:radial-gradient(circle at center,#ff9fd0 0%,#ff6db1 46%,transparent 71%);
+      animation:floatBlob 9s ease-in-out infinite;
+    }
+    body::after{
+      bottom:-12vmax;right:-10vmax;
+      background:radial-gradient(circle at center,#d7abff 0%,#ff9bd1 44%,transparent 70%);
+      animation:floatBlob 11s ease-in-out infinite reverse;
+    }
+
+    #canvas-bg{
+      position:fixed;top:0;left:0;width:100%;height:100%;
+      pointer-events:none;z-index:0;
+      opacity:.95;
+      mix-blend-mode:screen;
+    }
+
+    .wrap{
+      position:relative;z-index:1;
+      max-width:860px;margin:0 auto;
+      padding:32px 20px 80px;
+    }
+
+    .hero{
+      text-align:center;
+      padding:52px 20px 40px;
+      margin-bottom:36px;
+      position:relative;
+    }
+    .hero::after{
+      content:'';display:block;
+      height:2px;
+      background:linear-gradient(90deg,transparent,var(--pink),var(--lilac),var(--pink),transparent);
+      margin-top:36px;border-radius:2px;
+    }
+    .hero-title{
+      font-family:'Playfair Display',serif;
+      font-size:36px;line-height:1.2;
+      color:var(--rose);
+      margin-bottom:10px;
+      animation:fadeDown .8s ease both;
+    }
+    .hero-sub{
+      color:var(--muted);font-size:15px;
+      max-width:560px;margin:0 auto;
+      animation:fadeDown .8s .15s ease both;
+    }
+    .hero-from{
+      margin-top:18px;
+      font-family:'Playfair Display',serif;
+      font-style:italic;
+      font-size:16px;
+      color:var(--rose);
+      animation:fadeDown .8s .3s ease both;
+    }
+    .heart-big{
+      font-size:52px;
+      display:block;margin-bottom:12px;
+      animation:heartbeat 1.6s ease-in-out infinite;
+    }
+
+    h2{
+      font-size:20px;margin:30px 0 10px;
+      color:var(--rose);
+      display:flex;align-items:center;gap:8px;
+    }
+    h2::before{content:'✿';font-size:16px;color:var(--pink)}
+    h3{font-size:15px;margin:14px 0 7px;color:#b05070;font-weight:600}
+    p{margin:8px 0;color:var(--text)}
+
+    .card{
+      background:var(--card);
+      border:1.5px solid var(--line);
+      border-radius:18px;
+      padding:18px;
+      margin-top:12px;
+      box-shadow:0 5px 20px #ff63a32b;
+      transition:transform .2s,box-shadow .2s;
+    }
+    .card:hover{
+      transform:translateY(-2px);
+      box-shadow:0 12px 34px #ff4f9733;
+    }
+    .sub{
+      background:var(--card2);
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:12px;margin-top:10px;
+    }
+
+    .step{
+      display:flex;gap:14px;align-items:flex-start;
+      padding:10px 0;border-bottom:1px solid var(--line);
+    }
+    .step:last-child{border-bottom:none}
+    .num{
+      min-width:30px;height:30px;border-radius:50%;
+      background:linear-gradient(135deg,var(--rose),var(--lilac));
+      color:#fff;
+      display:flex;align-items:center;justify-content:center;
+      font-weight:700;font-size:13px;flex-shrink:0;margin-top:1px;
+    }
+    .num-ok{background:linear-gradient(135deg,var(--ok),#82e8a4)}
+
+    ol,ul{margin:8px 0 8px 22px}
+    li{margin:6px 0}
+
+    code{
+      background:#ffe3f1;
+      border:1px solid #f7a2ca;
+      border-radius:6px;
+      padding:1px 7px;
+      color:#c0305a;
+      font-family:'Fira Code',Consolas,monospace;
+      font-size:13px;
+    }
+    pre{
+      background:#ffe3f1;
+      border:1px solid #f7a2ca;
+      border-radius:12px;
+      padding:16px;overflow-x:auto;
+      font-family:'Fira Code',Consolas,monospace;
+      font-size:13px;line-height:1.7;
+      margin:10px 0;color:#7a1040;
+    }
+
+    .tip{
+      border-left:3px solid var(--pink);
+      padding:9px 14px;margin:10px 0;
+      background:#ffeaf5;
+      border-radius:0 10px 10px 0;
+      font-size:14px;color:var(--muted);
+    }
+    .tip::before{content:'💡 ';font-style:normal}
+
+    a{color:var(--rose);text-decoration:none}
+    a:hover{text-decoration:underline}
+
+    table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px}
+    th,td{border:1px solid var(--line);padding:9px;text-align:left;vertical-align:top}
+    th{background:var(--card2);color:var(--rose);font-weight:600}
+
+    .divider{
+      text-align:center;
+      color:var(--pink);
+      font-size:20px;
+      margin:10px 0 4px;
+      letter-spacing:8px;
+    }
+
+    .final{
+      text-align:center;padding:36px 20px;
+      background:linear-gradient(135deg,#ffd8ec,#f2d6ff,#ffe2f4);
+      border:2px solid var(--line);
+      border-radius:24px;margin-top:32px;
+    }
+    .final p{font-size:17px;color:var(--rose);margin:6px 0}
+    .final .big{
+      font-family:'Playfair Display',serif;
+      font-size:22px;font-style:italic;
+      color:var(--rose);margin:14px 0;
+    }
+
+    @keyframes heartbeat{
+      0%,100%{transform:scale(1)}
+      15%{transform:scale(1.18)}
+      30%{transform:scale(1)}
+      45%{transform:scale(1.10)}
+      60%{transform:scale(1)}
+    }
+    @keyframes fadeDown{
+      from{opacity:0;transform:translateY(-16px)}
+      to{opacity:1;transform:translateY(0)}
+    }
+    @keyframes floatBlob{
+      0%,100%{transform:translateY(0) translateX(0) scale(1)}
+      50%{transform:translateY(24px) translateX(18px) scale(1.14)}
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="canvas-bg"></canvas>
+
+<div class="wrap">
+  <div class="hero">
+    <span class="heart-big">♡</span>
+    <h1 class="hero-title">Вкат в Go — часть 2</h1>
+    <p class="hero-sub">Любимая, эта часть про <a href="https://gobyexample.com" target="_blank">Go by Example</a>: как пройти его системно, с практикой и с нашим общим репозиторием. Я рядом на каждом шаге, всегда помогу и всегда поддержу тебя.</p>
+    <div class="hero-from">— люблю тебя, иду рядом всегда —</div>
+  </div>
+
+  <h2>Что такое Go by Example и зачем он нам</h2>
+  <div class="card">
+    <p><b>Go by Example</b> отлично закрывает синтаксис и базовые идиомы языка на маленьких живых примерах. Мы берём его как маршрут по темам, а я в любой момент рядом, если что-то будет непонятно.</p>
+    <div class="sub">
+      <div class="step"><div class="num num-ok">✓</div><div>Даёт крепкую базу: переменные, функции, структуры, интерфейсы, горутины, каналы</div></div>
+      <div class="step"><div class="num num-ok">✓</div><div>Позволяет быстро "пощупать" каждую тему на коде</div></div>
+      <div class="step"><div class="num">!</div><div>Не заменяет прод-практику: архитектуру, тестирование, профилирование мы наращиваем отдельно</div></div>
+    </div>
+    <div class="tip">Идея: сначала понять тему на примере, потом закрепить своей задачей в этой же теме. Я рядом везде и всегда, и всегда готов помочь.</div>
+  </div>
+
+  <h2>Шаг 1 — Создай общий репозиторий</h2>
+  <div class="card">
+    <p>Создай новый репозиторий на GitHub, например <code>go-by-example-practice</code>.</p>
+    <ol>
+      <li>Зайди на <a href="https://github.com/new" target="_blank">github.com/new</a></li>
+      <li>Owner: твой аккаунт, Repository name: <code>go-by-example-practice</code></li>
+      <li>Выбери <b>Public</b> (пусть репозиторий будет открытым)</li>
+      <li>В поле Description напиши всё что хочешь, тут только твоя фантазия</li>
+      <li>Поставь галочку <b>Add a README file</b></li>
+      <li>Нажми <b>Create repository</b></li>
+    </ol>
+  </div>
+
+  <h2>Шаг 2 — Пригласи меня как контрибьютера</h2>
+  <div class="card">
+    <p>Добавь меня в репозиторий, чтобы я мог пушить в него изменения и быть рядом с тобой в этом обучении каждый день.</p>
+    <ol>
+      <li>Открой репозиторий → <b>Settings</b></li>
+      <li>Слева выбери <b>Collaborators and teams</b></li>
+      <li>Нажми <b>Add people</b></li>
+      <li>Введи мой ник: <code>gopherchan2006</code></li>
+      <li>Выбери аккаунт и нажми <b>Add</b> / <b>Invite</b></li>
+    </ol>
+    <p>После этого я принимаю инвайт:</p>
+    <ol>
+      <li>Открываю уведомления на GitHub (иконка колокольчика)</li>
+      <li>Нахожу приглашение в репозиторий</li>
+      <li>Нажимаю <b>Accept invitation</b></li>
+    </ol>
+    <div class="tip">После принятия у меня появится право делать коммиты и пушить в этот репозиторий, и мы будем проходить всё вдвоем, спокойно и с заботой.</div>
+  </div>
+
+  <h2>Шаг 3 — Структура папок по темам</h2>
+  <div class="card">
+    <p>Я заранее закоммичу структуру папок и задания под каждую тему с <a href="https://gobyexample.com" target="_blank">Go by Example</a>. Мы будем проходить их по очереди, а решения хранить каждый в своей папке.</p>
+    <pre>go-by-example-practice/
+  README.md
+  topics/
+    01-variables/
+      tasks30_04_2026.md
+      vikasuperpuper/
+      gopherchan2006/
+    02-if-else/
+      tasks30_04_2026.md
+      vikasuperpuper/
+      gopherchan2006/
+    03-loops/
+      tasks30_04_2026.md
+      vikasuperpuper/
+      gopherchan2006/
+    04-functions/
+      tasks30_04_2026.md
+      vikasuperpuper/
+      gopherchan2006/
+    ...</pre>
+    <p>Формат выполненного задания я опишу внутри файла задач. И еще важный момент: мы периодически возвращаемся к старым темам, поэтому вместо одного <code>tasks.md</code> будут файлы по датам, например <code>tasks30_04_2026.md</code>, <code>tasks15_05_2026.md</code> и так далее. В этих же файлах я буду писать дедлайны — до какой даты нужно закончить каждую задачу. В своей подпапке называй файлы так же, как называется задача, только с расширением <code>.go</code>. Если для одной задачи нужно несколько файлов, создай подпапку с названием задачи, например <code>tasks_30_04_2026</code>.</p>
+  </div>
+
+  <h2>Шаг 4 — Как работать над темой</h2>
+  <div class="card">
+    <div class="sub">
+      <div class="step"><div class="num">1</div><div>Открываешь тему на <a href="https://gobyexample.com" target="_blank">gobyexample.com</a> и не просто читаешь: лапками переписываешь код вручную, запускаешь, смотришь вывод и анализируешь, какая команда за что отвечает</div></div>
+      <div class="step"><div class="num">2</div><div>Я добавляю задания в файл по дате, например <code>topics/xx-topic/tasks30_04_2026.md</code></div></div>
+      <div class="step"><div class="num">3</div><div>Ты решаешь задания в <code>vikasuperpuper/</code>, я решаю в <code>gopherchan2006/</code></div></div>
+      <div class="step"><div class="num">4</div><div>Каждый делает коммит со своим решением</div></div>
+      <div class="step"><div class="num">5</div><div>Потом разбираем вместе: что получилось, где было сложно, как улучшить. Нейронку спрашивай только когда совсем полный затуп и нужно разобрать тему; в остальное время лучше дополнительно идти в интернет и углублять тему — так прогресс будет сильнее. GitHub Copilot у тебя под рукой как ассистент</div></div>
+    </div>
+    <div class="tip">Главное правило: не гонимся за скоростью. Лучше меньше тем, но с полным пониманием и практикой. Я рядом всегда, правда в любой момент.</div>
+  </div>
+
+  <h2>Минимальные Git-команды для нас двоих</h2>
+  <div class="card">
+    <pre>git clone https://github.com/vikasuperpuper/go-by-example-practice
+cd go-by-example-practice
+git pull
+
+# работа над задачами
+git add .
+git commit -m "topic: solve tasks for variables"
+git push</pre>
+    <p>Если что-то пойдет не так в терминале, сразу зови меня, разберёмся вместе.</p>
+  </div>
+
+  <h2>Ритм на неделю</h2>
+  <div class="card">
+    <table>
+      <thead><tr><th>День</th><th>Что делаем</th><th>Результат</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Новая тема + переписать пример с Go by Example руками + запуск</td><td>Понимание синтаксиса темы и реального поведения кода</td></tr>
+        <tr><td>2</td><td>Я добавляю задания и дедлайны в <code>tasksDD_MM_YYYY.md</code></td><td>Практический план на тему</td></tr>
+        <tr><td>3</td><td>Каждый решает у себя в папке</td><td>Два независимых решения</td></tr>
+        <tr><td>4</td><td>Разбор и улучшения</td><td>Закрепление и чистый код</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="divider">♡ ✿ ♡ ✿ ♡</div>
+  <div class="final">
+    <p>Это наш общий учебный репозиторий и наш общий темп.</p>
+    <p style="margin-top:8px">Темы берем с Go by Example, задания и дедлайны я даю по ходу пути и по мере возврата к старым темам.</p>
+    <div class="big">Ты не одна: я рядом везде и всегда, люблю тебя и всегда готов помочь.</div>
+    <div style="font-size:40px;margin-top:20px;animation:heartbeat 1.6s infinite">♡</div>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('canvas-bg');
+const ctx = canvas.getContext('2d');
+const symbols = ['♡','✿','❀','✦','🐾','🐾','♡','✿','🐾','♡','✾','❁'];
+const particles = [];
+const cats = [];
+
+function resize(){
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+function randomRange(a,b){ return a + Math.random()*(b-a); }
+
+function spawnParticle(){
+  return {
+    x: randomRange(0, canvas.width),
+    y: canvas.height + 20,
+    symbol: symbols[Math.floor(Math.random()*symbols.length)],
+    size: randomRange(12, 26),
+    speed: randomRange(0.5, 1.6),
+    drift: randomRange(-0.5, 0.5),
+    opacity: randomRange(0.12, 0.35),
+    rotation: randomRange(-0.3, 0.3),
+    rotSpeed: randomRange(-0.01, 0.01),
+    life: 1
+  };
+}
+
+function spawnCat(){
+  return {
+    x: randomRange(20, canvas.width - 20),
+    y: randomRange(40, canvas.height - 30),
+    symbol: Math.random() > 0.5 ? '🐱' : '🐈',
+    size: randomRange(28, 44),
+    drift: randomRange(-0.35, 0.35),
+    speedY: randomRange(0.08, 0.25),
+    sway: randomRange(0, Math.PI * 2),
+    opacity: randomRange(0.18, 0.34)
+  };
+}
+
+for(let i=0;i<28;i++){
+  const p = spawnParticle();
+  p.y = randomRange(0, canvas.height);
+  particles.push(p);
+}
+for(let i=0;i<9;i++) cats.push(spawnCat());
+
+let frame = 0;
+function animate(){
+  requestAnimationFrame(animate);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  frame++;
+  if(frame % 28 === 0 && particles.length < 55){
+    particles.push(spawnParticle());
+  }
+  if(frame % 220 === 0 && cats.length < 12){
+    cats.push(spawnCat());
+  }
+
+  for(let i = cats.length-1; i>=0; i--){
+    const c = cats[i];
+    c.y -= c.speedY;
+    c.x += c.drift + Math.sin(frame * 0.01 + c.sway) * 0.35;
+    if(c.y < -40){
+      cats[i] = spawnCat();
+      cats[i].y = canvas.height + randomRange(10, 80);
+      continue;
+    }
+
+    ctx.save();
+    ctx.globalAlpha = c.opacity;
+    ctx.font = `${c.size}px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif`;
+    ctx.fillStyle = '#ff7fb2';
+    ctx.fillText(c.symbol, c.x, c.y);
+    ctx.restore();
+  }
+
+  for(let i = particles.length-1; i>=0; i--){
+    const p = particles[i];
+    p.y -= p.speed;
+    p.x += p.drift + Math.sin(frame*0.012 + i)*0.3;
+    p.rotation += p.rotSpeed;
+
+    const fadeZone = canvas.height * 0.15;
+    if(p.y < fadeZone) p.life = Math.max(0, p.y / fadeZone);
+
+    if(p.y < -30){ particles.splice(i,1); continue; }
+
+    ctx.save();
+    ctx.globalAlpha = p.opacity * p.life;
+    ctx.font = `${p.size}px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",serif`;
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.rotation);
+    ctx.fillStyle = randomPink();
+    ctx.fillText(p.symbol, -p.size/2, p.size/2);
+    ctx.restore();
+  }
+}
+
+function randomPink(){
+  const pinks = ['#e8678a','#ff9fc5','#f7a8c4','#f48fb1','#d4a8e8','#f0b8d0','#e8a0b8'];
+  return pinks[Math.floor(Math.random()*pinks.length)];
+}
+
+animate();
+
+document.addEventListener('click', function(e){
+  for(let i=0;i<6;i++){
+    const p = spawnParticle();
+    p.x = e.clientX + randomRange(-30,30);
+    p.y = e.clientY + randomRange(-10,10);
+    p.speed = randomRange(1.5, 3.2);
+    p.size = randomRange(16, 30);
+    p.opacity = randomRange(0.5, 0.9);
+    p.symbol = ['♡','✿','❀','🐾'][Math.floor(Math.random()*4)];
+    particles.push(p);
+  }
+});
+</script>
+
+</body>
+</html>
