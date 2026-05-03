@@ -1,5 +1,7 @@
 ﻿package main
 
+import "fmt"
+
 func main() {
-\t// TODO: переписанный пример темы hello-world
+	fmt.Println("Hello, World!")
 }
